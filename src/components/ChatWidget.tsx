@@ -1,194 +1,204 @@
 import { useEffect, useRef, useState } from 'react';
-import { MessageCircle, X, Send, Check, CheckCheck, Mail, User, Home } from 'lucide-react';
+import {
+  MessageCircle,
+  X,
+  Send,
+  Check,
+  Mail,
+  User,
+  Home,
+} from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import type { Conversation, ChatMessage } from '@/types';
+import type { ChatMessage } from '@/types';
 
 const STORAGE_KEY = 'homescout_chat_conversation_id';
+const TOKEN_KEY = 'homescout_chat_access_token';
 
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
-  const [stage, setStage] = useState<'intro' | 'form' | 'chat' | 'connecting'>('intro');
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+
+  const [stage, setStage] = useState<
+    'intro' | 'form' | 'chat' | 'connecting'
+  >('intro');
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [error, setError] = useState('');
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Restore conversation from localStorage on mount
+  // Restore saved conversation and private access token
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      setConversationId(stored);
+    const storedId = localStorage.getItem(STORAGE_KEY);
+    const storedToken = localStorage.getItem(TOKEN_KEY);
+
+    if (storedId && storedToken) {
+      setConversationId(storedId);
+      setAccessToken(storedToken);
       setStage('chat');
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(TOKEN_KEY);
     }
   }, []);
 
-  // Scroll to bottom when messages change
+  // Scroll to latest message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Load messages + subscribe to realtime
+  // Secure message and unread-count polling
   useEffect(() => {
-    if (!conversationId) return;
+    if (!conversationId || !accessToken) return;
 
-    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let active = true;
 
-    (async () => {
-      // Fetch existing messages
-      const { data } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: true });
+    const loadMessages = async () => {
+      const { data, error: fetchError } = await supabase.rpc(
+        'customer_get_messages',
+        {
+          p_conversation_id: conversationId,
+          p_access_token: accessToken,
+        }
+      );
+
+      if (!active || fetchError) return;
+
       setMessages((data as ChatMessage[]) || []);
 
-      // Reset customer unread count when they open the chat
-      await supabase
-        .from('conversations')
-        .update({ customer_unread_count: 0 })
-        .eq('id', conversationId);
-      setUnreadCount(0);
+      await supabase.rpc('customer_mark_read', {
+        p_conversation_id: conversationId,
+        p_access_token: accessToken,
+      });
 
-      // Subscribe to new messages in this conversation
-      channel = supabase
-        .channel(`chat:${conversationId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'messages',
-            filter: `conversation_id=eq.${conversationId}`,
-          },
-          (payload) => {
-            const newMsg = payload.new as ChatMessage;
-            setMessages((prev) =>
-              prev.some((m) => m.id === newMsg.id) ? prev : [...prev, newMsg]
-            );
-            // If admin sent a message, it shows in the UI; unread is reset since they're viewing
-            if (newMsg.sender === 'admin') {
-              supabase
-                .from('conversations')
-                .update({ customer_unread_count: 0 })
-                .eq('id', conversationId)
-                .then();
-            }
-          }
-        )
-        .subscribe();
-    })();
+      if (active) setUnreadCount(0);
+    };
+
+    const loadUnreadCount = async () => {
+      const { data, error: unreadError } = await supabase.rpc(
+        'customer_get_unread_count',
+        {
+          p_conversation_id: conversationId,
+          p_access_token: accessToken,
+        }
+      );
+
+      if (!active || unreadError) return;
+
+      setUnreadCount(isOpen ? 0 : Number(data) || 0);
+    };
+
+    if (isOpen) {
+      loadMessages();
+    } else {
+      loadUnreadCount();
+    }
+
+    const interval = window.setInterval(() => {
+      if (isOpen) {
+        loadMessages();
+      } else {
+        loadUnreadCount();
+      }
+    }, 4000);
 
     return () => {
-      if (channel) supabase.removeChannel(channel);
+      active = false;
+      window.clearInterval(interval);
     };
-  }, [conversationId]);
+  }, [conversationId, accessToken, isOpen]);
 
-  // Check for unread admin messages when widget is closed
-  useEffect(() => {
-    if (!conversationId || isOpen) return;
-
-    let channel: ReturnType<typeof supabase.channel> | null = null;
-
-    (async () => {
-      const { data } = await supabase
-        .from('conversations')
-        .select('customer_unread_count')
-        .eq('id', conversationId)
-        .maybeSingle();
-      if (data) setUnreadCount(data.customer_unread_count || 0);
-
-      channel = supabase
-        .channel(`chat-badge:${conversationId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'conversations',
-            filter: `id=eq.${conversationId}`,
-          },
-          (payload) => {
-            const updated = payload.new as Conversation;
-            setUnreadCount(updated.customer_unread_count || 0);
-          }
-        )
-        .subscribe();
-    })();
-
-    return () => {
-      if (channel) supabase.removeChannel(channel);
-    };
-  }, [conversationId, isOpen]);
-
+  // Start a new customer conversation
   const startConversation = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!name.trim() || !email.trim()) return;
+
     setStage('connecting');
+    setError('');
 
-    const { data, error } = await supabase
-      .from('conversations')
-      .insert({
-        customer_name: name.trim(),
-        customer_email: email.trim(),
-        status: 'open',
-      })
-      .select()
-      .single();
+    const { data, error: createError } = await supabase.rpc(
+      'create_customer_conversation',
+      {
+        p_customer_name: name.trim(),
+        p_customer_email: email.trim(),
+      }
+    );
 
-    if (error || !data) {
+    if (createError || !data?.conversation_id || !data?.access_token) {
       setStage('form');
+      setError('Unable to start your conversation. Please try again.');
       return;
     }
 
-    const convId = (data as Conversation).id;
+    const convId = data.conversation_id as string;
+    const token = data.access_token as string;
+
     localStorage.setItem(STORAGE_KEY, convId);
+    localStorage.setItem(TOKEN_KEY, token);
+
     setConversationId(convId);
+    setAccessToken(token);
+    setMessages([]);
+    setUnreadCount(0);
     setStage('chat');
   };
 
+  // Send a customer message securely
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || !conversationId) return;
-    const content = input.trim();
-    setInput('');
-    setSending(true);
 
-    const { data } = await supabase
-      .from('messages')
-      .insert({
-        conversation_id: conversationId,
-        sender: 'customer',
-        content,
-      })
-      .select()
-      .single();
-
-    if (data) {
-      setMessages((prev) => [...prev, data as ChatMessage]);
+    if (!input.trim() || !conversationId || !accessToken || sending) {
+      return;
     }
+
+    const content = input.trim();
+
+    setSending(true);
+    setError('');
+
+    const { data, error: sendError } = await supabase.rpc(
+      'customer_send_message',
+      {
+        p_conversation_id: conversationId,
+        p_access_token: accessToken,
+        p_content: content,
+      }
+    );
+
+    if (sendError) {
+      setError('Message could not be sent. Please try again.');
+      setSending(false);
+      return;
+    }
+
+    const newMessage = (Array.isArray(data) ? data[0] : data) as ChatMessage;
+
+    if (newMessage) {
+      setMessages((prev) =>
+        prev.some((message) => message.id === newMessage.id)
+          ? prev
+          : [...prev, newMessage]
+      );
+    }
+
+    setInput('');
     setSending(false);
   };
 
   const handleOpen = () => {
     setIsOpen(true);
-    if (conversationId) {
-      // Reset unread when opening
-      supabase
-        .from('conversations')
-        .update({ customer_unread_count: 0 })
-        .eq('id', conversationId)
-        .then();
-      setUnreadCount(0);
-    }
+    setUnreadCount(0);
   };
 
   return (
     <>
-      {/* Floating button */}
       {!isOpen && (
         <button
           onClick={handleOpen}
@@ -196,85 +206,30 @@ export default function ChatWidget() {
           aria-label="Open chat support"
         >
           <MessageCircle className="w-6 h-6" />
+
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center animate-scale-in">
+            <span className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
         </button>
       )}
 
-      {/* Chat panel */}
       {isOpen && (
         <div className="fixed bottom-5 right-5 z-50 w-[calc(100vw-2.5rem)] sm:w-96 h-[min(600px,calc(100vh-5rem))] bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-scale-in">
-          {/* Header */}
+
           <div className="bg-navy-900 px-4 py-3.5 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2.5">
-              <div className="flex items-center justify-center w-9 h-9 rounded-full bg-white/15 backdrop-blur-md">
-                <Home className="w-4.5 h-4.5 text-white" strokeWidth={2.5} />
+              <div className="flex items-center justify-center w-9 h-9 rounded-full bg-white/15">
+                <Home className="w-4.5 h-4.5 text-white" />
               </div>
+
               <div>
-                <p className="text-sm font-bold text-white font-display">HomeScout Support</p>
-                <p className="text-[11px] text-navy-300 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> Online
+                <p className="text-sm font-bold text-white font-display">
+                  HomeScout Support
                 </p>
-              </div>
-            </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center transition-colors"
-              aria-label="Close chat"
-            >
-              <X className="w-5 h-5 text-white" />
-            </button>
-          </div>
-
-          {/* Body */}
-          {stage === 'intro' && (
-            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-              <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-navy-50 mb-4">
-                <MessageCircle className="w-8 h-8 text-navy-600" />
-              </div>
-              <h3 className="text-lg font-bold text-navy-900 mb-2">We're here to help</h3>
-              <p className="text-sm text-slate-500 mb-6 leading-relaxed">
-                Have a question about a property or need help finding your next home? Chat with our support team in real time.
-              </p>
-              <button
-                onClick={() => setStage('form')}
-                className="w-full py-3 bg-navy-900 text-white text-sm font-semibold rounded-xl hover:bg-navy-800 transition-colors"
-              >
-                Start a Conversation
-              </button>
-            </div>
-          )}
-
-          {stage === 'form' && (
-            <div className="flex-1 overflow-y-auto p-5">
-              <h3 className="text-lg font-bold text-navy-900 mb-1">Let's get started</h3>
-              <p className="text-sm text-slate-500 mb-4">Tell us your name and email so we can reply to you.</p>
-              <form onSubmit={startConversation} className="space-y-3">
-                <div>
-                  <label className="text-xs font-semibold text-slate-600 mb-1.5 block">Your Name</label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input
-                      required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Jane Doe"
-                      className="w-full pl-10 pr-3 py-2.5 text-sm rounded-lg border border-slate-200 bg-slate-50 text-navy-900 focus:border-navy-400 focus:ring-2 focus:ring-navy-100 outline-none transition-all"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-slate-600 mb-1.5 block">Email Address</label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                <p className="text-[11px] text-navy-300 flex items-center gap-1">
+                  <span               onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@example.com"
                       className="w-full pl-10 pr-3 py-2.5 text-sm rounded-lg border border-slate-200 bg-slate-50 text-navy-900 focus:border-navy-400 focus:ring-2 focus:ring-navy-100 outline-none transition-all"
                     />
