@@ -24,14 +24,17 @@ export default function SignUpPage() {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName } },
+      options: {
+  data: { full_name: fullName },
+  emailRedirectTo: `${window.location.origin}/signin`,
+},
     });
     setLoading(false);
     if (error) {
       setError(error.message);
     } else {
-      await refreshProfile();
-      navigate('/');
+  setError('Account created! Please check your email and click the confirmation link to activate your account.');
+    }
     }
   };
 
