@@ -1,46 +1,52 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import type { MouseEvent } from 'react';
 import {
-  Bed, Bath, Maximize, Heart, MapPin,
-  BadgeCheck, ChevronRight, Home
+  Bed,
+  Bath,
+  Maximize,
+  Heart,
+  MapPin,
+  BadgeCheck,
+  ChevronRight,
+  Home
 } from 'lucide-react';
+
 import type { Property } from '@/types';
 import { formatPrice, formatNumber } from '@/lib/format';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 
-const FALLBACK_IMAGES = [
-  'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=900',
-  'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=900',
-  'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=900',
-  'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=900',
-  'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=900',
-  'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=900',
-  'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=900',
-  'https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=900'
-];
-
 function getFallbackImage(id: string | number) {
   const hash = String(id)
     .split('')
-    .reduce((total, char) => total + char.charCodeAt(0), 0);
+    .reduce(
+      (total, char) => (total * 31 + char.charCodeAt(0)) >>> 0,
+      0
+    );
 
-  return FALLBACK_IMAGES[hash % FALLBACK_IMAGES.length];
+  return `https://loremflickr.com/1000/750/house,home,realestate?lock=${hash}`;
 }
 
-export default function PropertyCard({ property }: { property: Property }) {
+export default function PropertyCard({
+  property
+}: {
+  property: Property;
+}) {
   const { session } = useAuth();
+
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
 
   const fallbackImage = getFallbackImage(property.id);
 
-  const primaryImage = Array.isArray(property.images)
-    ? property.images.find(
-        (url) => typeof url === 'string' && url.trim() !== ''
-      ) || fallbackImage
-    : fallbackImage;
+  const primaryImage =
+    Array.isArray(property.images)
+      ? property.images.find(
+          (url) => typeof url === 'string' && url.trim() !== ''
+        ) || fallbackImage
+      : fallbackImage;
 
   const [imageUrl, setImageUrl] = useState(primaryImage);
 
@@ -60,10 +66,12 @@ export default function PropertyCard({ property }: { property: Property }) {
       .eq('property_id', property.id)
       .eq('user_id', session.user.id)
       .maybeSingle()
-      .then(({ data }) => setSaved(!!data));
+      .then(({ data }) => {
+        setSaved(!!data);
+      });
   }, [session, property.id]);
 
-  const toggleFavorite = async (e: React.MouseEvent) => {
+  const toggleFavorite = async (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -110,34 +118,30 @@ export default function PropertyCard({ property }: { property: Property }) {
           <div className="w-full h-full flex flex-col items-center justify-center bg-slate-200 text-slate-500">
             <Home className="w-12 h-12 mb-2" />
             <span className="text-xs font-medium">
-              Property photo unavailable
+              Photo unavailable
             </span>
           </div>
         ) : (
-          <>
-            <img
-              src={imageUrl}
-              alt={property.title}
-              loading="lazy"
-              onError={handleImageError}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            />
-
-            {imageUrl === fallbackImage && (
-              <span className="absolute bottom-3 left-3 px-2 py-1 bg-black/60 text-white text-[10px] rounded-md">
-                Illustrative image
-              </span>
-            )}
-          </>
+          <img
+            src={imageUrl}
+            alt={property.title}
+            loading="lazy"
+            onError={handleImageError}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
         )}
 
         <div className="absolute top-3 left-3 flex gap-2">
-          <span className={`px-3 py-1 text-xs font-bold rounded-full backdrop-blur-md ${
-            property.listing_type === 'sale'
-              ? 'bg-navy-900/90 text-white'
-              : 'bg-emerald-600/90 text-white'
-          }`}>
-            {property.listing_type === 'sale' ? 'For Sale' : 'For Rent'}
+          <span
+            className={`px-3 py-1 text-xs font-bold rounded-full backdrop-blur-md ${
+              property.listing_type === 'sale'
+                ? 'bg-navy-900/90 text-white'
+                : 'bg-emerald-600/90 text-white'
+            }`}
+          >
+            {property.listing_type === 'sale'
+              ? 'For Sale'
+              : 'For Rent'}
           </span>
 
           {property.featured && (
@@ -177,7 +181,8 @@ export default function PropertyCard({ property }: { property: Property }) {
 
         <p className="text-xs text-slate-500 flex items-center gap-1 mb-3 line-clamp-1">
           <MapPin className="w-3.5 h-3.5 shrink-0" />
-          {property.address}, {property.city}, {property.state} {property.zip_code}
+          {property.address}, {property.city}, {property.state}{' '}
+          {property.zip_code}
         </p>
 
         <div className="flex items-center gap-4 text-xs text-slate-600 pt-3 border-t border-slate-100 mb-3">
@@ -213,4 +218,4 @@ export default function PropertyCard({ property }: { property: Property }) {
       </div>
     </Link>
   );
-}
+            }
