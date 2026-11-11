@@ -2,20 +2,37 @@ import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import type { MouseEvent } from 'react';
 import {
-  Bed,
-  Bath,
-  Maximize,
-  Heart,
-  MapPin,
-  BadgeCheck,
-  ChevronRight,
-  Home
+  Bed, Bath, Maximize, Heart, MapPin,
+  BadgeCheck, ChevronRight, Home
 } from 'lucide-react';
 
 import type { Property } from '@/types';
 import { formatPrice, formatNumber } from '@/lib/format';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
+
+const FALLBACK_IMAGES = [
+  'photo-1600596542815-ffad4c1539a9',
+  'photo-1600607687939-ce8a6c25118c',
+  'photo-1600566753086-00f18fb6b3ea',
+  'photo-1600607687920-4e2a09cf159d',
+  'photo-1600566753190-17f0baa2a6c3',
+  'photo-1600585154340-be6161a56a0c',
+  'photo-1600047509807-ba8f99d2cdde',
+  'photo-1600607687644-c7171b42498f',
+  'photo-1600585154526-990dced4db0d',
+  'photo-1600566752355-35792bedcfea',
+  'photo-1600210492486-724fe5c67fb0',
+  'photo-1600607688969-a5bfcd646154',
+  'photo-1600607687939-ce8a6c25118c',
+  'photo-1600585154526-990dced4db0d',
+  'photo-1600566752355-35792bedcfea',
+  'photo-1600210492486-724fe5c67fb0',
+  'photo-1600607687644-c7171b42498f',
+  'photo-1600585154340-be6161a56a0c',
+  'photo-1600566753190-17f0baa2a6c3',
+  'photo-1600047509807-ba8f99d2cdde'
+];
 
 function getFallbackImage(id: string | number) {
   const hash = String(id)
@@ -25,14 +42,12 @@ function getFallbackImage(id: string | number) {
       0
     );
 
-  return `https://loremflickr.com/1000/750/house,home,realestate?lock=${hash}`;
+  const photo = FALLBACK_IMAGES[hash % FALLBACK_IMAGES.length];
+
+  return `https://images.unsplash.com/${photo}?auto=format&fit=crop&w=1000&q=85`;
 }
 
-export default function PropertyCard({
-  property
-}: {
-  property: Property;
-}) {
+export default function PropertyCard({ property }: { property: Property }) {
   const { session } = useAuth();
 
   const [saved, setSaved] = useState(false);
@@ -66,9 +81,7 @@ export default function PropertyCard({
       .eq('property_id', property.id)
       .eq('user_id', session.user.id)
       .maybeSingle()
-      .then(({ data }) => {
-        setSaved(!!data);
-      });
+      .then(({ data }) => setSaved(!!data));
   }, [session, property.id]);
 
   const toggleFavorite = async (e: MouseEvent<HTMLButtonElement>) => {
@@ -113,7 +126,6 @@ export default function PropertyCard({
       className="group bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200/80 hover:shadow-xl hover:border-navy-200 transition-all duration-300 flex flex-col"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
-
         {imageFailed ? (
           <div className="w-full h-full flex flex-col items-center justify-center bg-slate-200 text-slate-500">
             <Home className="w-12 h-12 mb-2" />
@@ -139,9 +151,7 @@ export default function PropertyCard({
                 : 'bg-emerald-600/90 text-white'
             }`}
           >
-            {property.listing_type === 'sale'
-              ? 'For Sale'
-              : 'For Rent'}
+            {property.listing_type === 'sale' ? 'For Sale' : 'For Rent'}
           </span>
 
           {property.featured && (
@@ -181,8 +191,7 @@ export default function PropertyCard({
 
         <p className="text-xs text-slate-500 flex items-center gap-1 mb-3 line-clamp-1">
           <MapPin className="w-3.5 h-3.5 shrink-0" />
-          {property.address}, {property.city}, {property.state}{' '}
-          {property.zip_code}
+          {property.address}, {property.city}, {property.state} {property.zip_code}
         </p>
 
         <div className="flex items-center gap-4 text-xs text-slate-600 pt-3 border-t border-slate-100 mb-3">
@@ -218,4 +227,4 @@ export default function PropertyCard({
       </div>
     </Link>
   );
-            }
+    }
