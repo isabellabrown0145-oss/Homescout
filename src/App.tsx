@@ -11,6 +11,7 @@ import SignUpPage from '@/pages/SignUpPage';
 import FavoritesPage from '@/pages/FavoritesPage';
 import AdminPage from '@/pages/AdminPage';
 import SellPage from '@/pages/SellPage';
+import Contact from '@/pages/Contact';
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
               <Route path="/signup" element={<SignUpPage />} />
               <Route path="/favorites" element={<FavoritesPage />} />
               <Route path="/admin" element={<AdminPage />} />
+              <Route path="/contact" element={<Contact />} />
             </Routes>
           </main>
           <Footer />
@@ -36,4 +38,4 @@ export default function App() {
       </BrowserRouter>
     </AuthProvider>
   );
-}
+      }
