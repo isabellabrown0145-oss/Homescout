@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, TrendingUp, Shield, Home as HomeIcon, MapPin } from 'lucide-react';
+import { Search, TrendingUp, Shield, Home as HomeIcon, MapPin, ArrowRight, KeyRound } from 'lucide-react';
 import SearchBar from '@/components/SearchBar';
 import PropertyCard from '@/components/PropertyCard';
 import { supabase } from '@/lib/supabase';
@@ -87,6 +87,42 @@ export default function HomePage() {
 
       {/* Featured Properties */}
       <FeaturedSection />
+
+      {/* Rental Support Banner */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4">
+        <div className="relative overflow-hidden rounded-3xl bg-navy-950 px-6 py-10 sm:px-10 sm:py-12">
+          <div className="absolute -right-16 -top-20 w-72 h-72 rounded-full bg-blue-500/10 blur-3xl" />
+          <div className="absolute -left-16 -bottom-20 w-64 h-64 rounded-full bg-blue-400/10 blur-3xl" />
+
+          <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+            <div className="flex items-start gap-5">
+              <div className="hidden sm:flex shrink-0 w-14 h-14 rounded-2xl bg-white/10 items-center justify-center text-blue-300">
+                <KeyRound className="w-7 h-7" />
+              </div>
+
+              <div>
+                <span className="inline-block text-xs font-bold tracking-widest uppercase text-blue-300 mb-3">
+                  Rental assistance
+                </span>
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-white font-display mb-3">
+                  Looking for a place to rent?
+                </h2>
+                <p className="text-slate-300 max-w-xl leading-relaxed">
+                  Can't find the right rental? Contact our support team and tell us what you're looking for. We're here to help.
+                </p>
+              </div>
+            </div>
+
+            <Link
+              to="/contact"
+              className="shrink-0 inline-flex items-center justify-center gap-3 px-7 py-4 bg-white text-navy-950 font-bold rounded-xl hover:bg-blue-50 transition-colors"
+            >
+              Contact Support
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+          </div>
+        </div>
+      </section>
 
       {/* Recently Added */}
       <RecentSection />
@@ -228,4 +264,4 @@ function EmptyState() {
       <p className="text-slate-500">No properties yet. Check back soon!</p>
     </div>
   );
-}
+      }
