@@ -3,7 +3,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ChatWidget from '@/components/ChatWidget';
-import CinematicBackground from '@/components/CinematicBackground';
+import CinematicBackground from '@/components/CinematicBackground.tsx/Cinematicbackground';
 
 import HomePage from '@/pages/HomePage';
 import ListingsPage from '@/pages/ListingsPage';
