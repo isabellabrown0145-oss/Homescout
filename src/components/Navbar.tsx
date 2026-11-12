@@ -8,7 +8,7 @@ import {
   LogOut,
   LayoutDashboard,
   ChevronDown,
-  ArrowUpRight
+  ArrowUpRight,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
@@ -16,42 +16,20 @@ function HomeScoutLogo() {
   return (
     <Link to="/" className="group flex items-center gap-3 shrink-0">
       <div className="relative">
-        <div className="absolute inset-0 rounded-2xl bg-blue-500 blur-lg opacity-30 group-hover:opacity-60 transition-opacity" />
+        <div className="absolute inset-0 rounded-2xl bg-blue-500 blur-xl opacity-30 group-hover:opacity-60 transition-opacity" />
 
-        <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500 via-blue-700 to-navy-950 flex items-center justify-center shadow-lg shadow-blue-900/20 group-hover:-translate-y-1 transition-transform duration-300">
-          <svg
-            viewBox="0 0 48 48"
-            fill="none"
-            className="w-7 h-7"
-          >
-            <path
-              d="M7 22L24 8L41 22"
-              stroke="white"
-              strokeWidth="3.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M12 20V39H36V20"
-              stroke="white"
-              strokeWidth="3.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M20 39V28H28V39"
-              stroke="#93C5FD"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
+        <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500 via-blue-700 to-slate-950 flex items-center justify-center shadow-lg shadow-blue-900/30 group-hover:-translate-y-1 transition-transform duration-300">
+          <svg viewBox="0 0 48 48" fill="none" className="w-7 h-7">
+            <path d="M7 22L24 8L41 22" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M12 20V39H36V20" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M20 39V28H28V39" stroke="#93C5FD" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
             <circle cx="35" cy="12" r="4" fill="#60A5FA" />
           </svg>
         </div>
       </div>
 
       <div className="flex flex-col">
-        <span className="text-xl font-extrabold tracking-tight text-navy-950 leading-none">
+        <span className="text-xl font-extrabold tracking-tight text-slate-900 leading-none">
           Home<span className="text-blue-600">Scout</span>
         </span>
         <span className="text-[9px] tracking-[0.25em] font-bold text-slate-400 uppercase mt-1">
@@ -81,18 +59,24 @@ export default function Navbar() {
   };
 
   const navClass =
-    'relative px-4 py-2.5 text-sm font-semibold text-slate-600 hover:text-blue-700 rounded-xl hover:bg-blue-50/80 transition-all duration-200';
+    'relative px-4 py-2.5 text-sm font-semibold text-slate-700 hover:text-blue-700 rounded-xl hover:bg-white/70 transition-all duration-300';
+
+  const mobileLink =
+    'flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-bold text-slate-700 hover:bg-white/70 hover:text-blue-700 transition-all duration-300';
 
   return (
-    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-slate-200/70 shadow-sm shadow-slate-900/[0.02]">
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 w-full border-b border-white/50 bg-white/55 backdrop-blur-2xl backdrop-saturate-150 shadow-[0_8px_32px_rgba(15,23,42,0.06)]">
+
+      {/* Subtle glass reflection */}
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/50 via-white/10 to-transparent" />
+
+      <nav className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-[76px]">
 
-          {/* Logo */}
           <HomeScoutLogo />
 
           {/* Desktop navigation */}
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-1 p-1.5 rounded-2xl bg-white/25 border border-white/40 shadow-inner shadow-white/40">
 
             <Link to="/listings?listingType=sale" className={navClass}>
               Buy
@@ -114,7 +98,6 @@ export default function Navbar() {
                 </span>
               </Link>
             )}
-
           </div>
 
           {/* Desktop account section */}
@@ -125,9 +108,9 @@ export default function Navbar() {
 
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center gap-3 p-2 pl-3 rounded-2xl hover:bg-slate-100 transition-all"
+                  className="flex items-center gap-3 p-2 pl-3 rounded-2xl border border-white/60 bg-white/45 hover:bg-white/80 backdrop-blur-xl shadow-sm transition-all duration-300"
                 >
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-navy-900 text-white flex items-center justify-center font-bold shadow-md">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-slate-900 text-white flex items-center justify-center font-bold shadow-md">
                     {(profile?.full_name || profile?.email || 'U')[0].toUpperCase()}
                   </div>
 
@@ -141,7 +124,7 @@ export default function Navbar() {
                   </div>
 
                   <ChevronDown
-                    className={`w-4 h-4 text-slate-400 transition-transform ${
+                    className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${
                       userMenuOpen ? 'rotate-180' : ''
                     }`}
                   />
@@ -154,9 +137,9 @@ export default function Navbar() {
                       onClick={() => setUserMenuOpen(false)}
                     />
 
-                    <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl shadow-slate-900/10 border border-slate-100 py-2 z-20 animate-scale-in">
+                    <div className="absolute right-0 mt-3 w-64 bg-white/80 backdrop-blur-2xl border border-white/70 rounded-3xl shadow-[0_20px_60px_rgba(15,23,42,0.18)] py-2 z-20 animate-scale-in">
 
-                      <div className="px-5 py-4 border-b border-slate-100">
+                      <div className="px-5 py-4 border-b border-white/60">
                         <p className="font-bold text-slate-900 truncate">
                           {profile?.full_name || 'Welcome'}
                         </p>
@@ -169,7 +152,7 @@ export default function Navbar() {
                         <Link
                           to="/admin"
                           onClick={closeMenus}
-                          className="flex items-center gap-3 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                          className="flex items-center gap-3 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-blue-50/80 hover:text-blue-700 transition-colors"
                         >
                           <LayoutDashboard className="w-4 h-4" />
                           Admin Dashboard
@@ -179,7 +162,7 @@ export default function Navbar() {
                       <Link
                         to="/favorites"
                         onClick={closeMenus}
-                        className="flex items-center gap-3 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                        className="flex items-center gap-3 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-blue-50/80 hover:text-blue-700 transition-colors"
                       >
                         <Heart className="w-4 h-4" />
                         My Favorites
@@ -187,12 +170,11 @@ export default function Navbar() {
 
                       <button
                         onClick={handleSignOut}
-                        className="flex items-center gap-3 px-5 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors w-full"
+                        className="flex items-center gap-3 px-5 py-3 text-sm font-semibold text-red-600 hover:bg-red-50/80 transition-colors w-full"
                       >
                         <LogOut className="w-4 h-4" />
                         Sign Out
                       </button>
-
                     </div>
                   </>
                 )}
@@ -208,19 +190,18 @@ export default function Navbar() {
 
                 <Link
                   to="/signup"
-                  className="group flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl shadow-lg shadow-blue-600/20 hover:shadow-blue-600/40 hover:-translate-y-0.5 transition-all duration-300"
+                  className="group flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 hover:-translate-y-0.5 transition-all duration-300"
                 >
                   Get Started
                   <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </Link>
               </>
             )}
-
           </div>
 
           {/* Mobile menu button */}
           <button
-            className="md:hidden w-11 h-11 flex items-center justify-center rounded-xl bg-slate-100 text-slate-800 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+            className="md:hidden w-11 h-11 flex items-center justify-center rounded-2xl bg-white/55 border border-white/70 text-slate-800 backdrop-blur-xl shadow-sm hover:bg-white/80 transition-all"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle menu"
           >
@@ -234,9 +215,9 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile navigation */}
+      {/* Mobile glass navigation */}
       {mobileOpen && (
-        <div className="md:hidden bg-white border-t border-slate-100 shadow-xl animate-fade-in">
+        <div className="md:hidden relative border-t border-white/50 bg-white/65 backdrop-blur-2xl shadow-[0_20px_40px_rgba(15,23,42,0.10)] animate-fade-in">
 
           <div className="px-4 py-5 space-y-2">
 
@@ -246,59 +227,38 @@ export default function Navbar() {
               </p>
             </div>
 
-            <Link
-              to="/listings?listingType=sale"
-              onClick={closeMenus}
-              className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-bold text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
-            >
+            <Link to="/listings?listingType=sale" onClick={closeMenus} className={mobileLink}>
               <Home className="w-5 h-5" />
               Buy a Property
             </Link>
 
-            <Link
-              to="/listings?listingType=rent"
-              onClick={closeMenus}
-              className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-bold text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
-            >
+            <Link to="/listings?listingType=rent" onClick={closeMenus} className={mobileLink}>
               <Home className="w-5 h-5" />
               Rent a Property
             </Link>
 
-            <Link
-              to="/sell"
-              onClick={closeMenus}
-              className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-bold text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
-            >
+            <Link to="/sell" onClick={closeMenus} className={mobileLink}>
               <ArrowUpRight className="w-5 h-5" />
               Sell a Property
             </Link>
 
             {session && (
-              <Link
-                to="/favorites"
-                onClick={closeMenus}
-                className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-bold text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
-              >
+              <Link to="/favorites" onClick={closeMenus} className={mobileLink}>
                 <Heart className="w-5 h-5" />
                 Favorites
               </Link>
             )}
 
-            <Link
-              to="/contact"
-              onClick={closeMenus}
-              className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-bold text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
-            >
+            <Link to="/contact" onClick={closeMenus} className={mobileLink}>
               <Home className="w-5 h-5" />
               Contact Support
             </Link>
 
-            <div className="border-t border-slate-100 pt-4 mt-4">
+            <div className="border-t border-white/60 pt-4 mt-4">
 
               {session ? (
                 <>
-
-                  <div className="px-4 py-3 mb-2 bg-slate-50 rounded-xl">
+                  <div className="px-4 py-3 mb-2 bg-white/50 border border-white/60 rounded-2xl backdrop-blur-xl">
                     <p className="font-bold text-slate-800 text-sm">
                       {profile?.full_name || 'My Account'}
                     </p>
@@ -311,7 +271,7 @@ export default function Navbar() {
                     <Link
                       to="/admin"
                       onClick={closeMenus}
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-slate-700 hover:bg-blue-50"
+                      className={mobileLink}
                     >
                       <LayoutDashboard className="w-5 h-5" />
                       Admin Dashboard
@@ -320,20 +280,18 @@ export default function Navbar() {
 
                   <button
                     onClick={handleSignOut}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-red-600 hover:bg-red-50 w-full"
+                    className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-red-600 hover:bg-red-50/80 w-full transition-colors"
                   >
                     <LogOut className="w-5 h-5" />
                     Sign Out
                   </button>
-
                 </>
               ) : (
                 <div className="grid grid-cols-2 gap-3">
-
                   <Link
                     to="/signin"
                     onClick={closeMenus}
-                    className="text-center py-3 rounded-xl border border-slate-200 text-sm font-bold text-slate-700"
+                    className="text-center py-3 rounded-2xl border border-white/70 bg-white/50 text-sm font-bold text-slate-700 backdrop-blur-xl"
                   >
                     Sign In
                   </Link>
@@ -341,18 +299,16 @@ export default function Navbar() {
                   <Link
                     to="/signup"
                     onClick={closeMenus}
-                    className="text-center py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-800 text-sm font-bold text-white shadow-lg shadow-blue-600/20"
+                    className="text-center py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-800 text-sm font-bold text-white shadow-lg shadow-blue-600/20"
                   >
                     Get Started
                   </Link>
-
                 </div>
               )}
-
             </div>
           </div>
         </div>
       )}
     </header>
   );
-      }
+                }
