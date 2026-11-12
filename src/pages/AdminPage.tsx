@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -19,6 +19,8 @@ import {
   ExternalLink,
   Sparkles,
   House,
+  Save,
+  Image as ImageIcon,
 } from 'lucide-react';
 
 import { supabase } from '@/lib/supabase';
@@ -77,7 +79,7 @@ function Field({
 }: {
   label: string;
   required?: boolean;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <div className="space-y-1.5 min-w-0">
@@ -238,7 +240,7 @@ export default function AdminPage() {
       return;
     }
 
-    fetchProperties();
+    await fetchProperties();
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -304,7 +306,7 @@ export default function AdminPage() {
     setShowForm(false);
     setForm(emptyForm);
     setEditingId(null);
-    fetchProperties();
+    await fetchProperties();
   };
 
   const toggleFeatured = async (property: Property) => {
@@ -318,7 +320,7 @@ export default function AdminPage() {
       return;
     }
 
-    fetchProperties();
+    await fetchProperties();
   };
 
   const filteredProperties = properties.filter((property) => {
@@ -346,7 +348,7 @@ export default function AdminPage() {
   return (
     <div className="relative min-h-screen text-slate-900 animate-fade-in">
 
-      {/* Dashboard background */}
+      {/* DASHBOARD BACKGROUND */}
       <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-slate-100 via-blue-50/70 to-white" />
         <div className="absolute -top-40 -right-40 w-[550px] h-[550px] bg-blue-400/15 blur-[120px] rounded-full" />
@@ -362,7 +364,6 @@ export default function AdminPage() {
 
             <div className="rounded-[28px] bg-white/55 backdrop-blur-3xl backdrop-saturate-150 border border-white/80 shadow-[0_12px_50px_rgba(15,23,42,0.07)] p-5">
 
-              {/* Brand */}
               <Link to="/" className="flex items-center gap-3 mb-9">
                 <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-blue-600/25">
                   <House className="w-6 h-6 text-white" />
@@ -382,7 +383,6 @@ export default function AdminPage() {
                 Workspace
               </p>
 
-              {/* Sidebar navigation */}
               <nav className="space-y-2">
 
                 <button
@@ -433,7 +433,6 @@ export default function AdminPage() {
 
               <div className="my-7 h-px bg-slate-200/70" />
 
-              {/* Account card */}
               <div className="rounded-2xl bg-white/65 border border-white/90 p-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold shadow-md">
@@ -471,7 +470,6 @@ export default function AdminPage() {
           {/* MAIN DASHBOARD */}
           <main className="min-w-0">
 
-            {/* Header */}
             <header className="rounded-[28px] bg-white/55 backdrop-blur-3xl border border-white/80 shadow-[0_12px_50px_rgba(15,23,42,0.06)] p-5 sm:p-7 mb-6">
 
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
@@ -485,9 +483,7 @@ export default function AdminPage() {
                   </div>
 
                   <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900">
-                    {activeTab === 'listings'
-                      ? 'Dashboard'
-                      : 'Messages'}
+                    {activeTab === 'listings' ? 'Dashboard' : 'Messages'}
                   </h1>
 
                   <p className="text-sm text-slate-500 mt-2">
@@ -509,7 +505,6 @@ export default function AdminPage() {
 
               </div>
 
-              {/* Mobile glass navigation */}
               <div className="lg:hidden flex gap-2 mt-6 p-1.5 rounded-2xl bg-white/60 border border-white/80 backdrop-blur-xl">
 
                 <button
@@ -557,45 +552,71 @@ export default function AdminPage() {
                 {/* STATISTICS */}
                 <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 mb-6">
 
-                  <div className="rounded-[24px] bg-white/60 backdrop-blur-2xl border border-white/90 p-4 sm:p-5 shadow-lg shadow-slate-900/5">
-                    <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mb-4">
-                      <Building2 className="w-5 h-5" />
+                  <StatCard
+                    icon={<Building2 className="w-5 h-5" />}
+                    label="Total Properties"
+                    value={properties.length}
+                    color="blue"
+                  />
+
+                  <StatCard
+                    icon={<Home className="w-5 h-5" />}
+                    label="For Sale"
+                    value={saleCount}
+                    color="green"
+                  />
+
+                  <StatCard
+                    icon={<House className="w-5 h-5" />}
+                    label="For Rent"
+                    value={rentCount}
+                    color="purple"
+                  />
+
+                  <StatCard
+                    icon={<Star className="w-5 h-5" />}
+                    label="Featured"
+                    value={featuredCount}
+                    color="amber"
+                  />
+
+                </div>
+
+                {/* PROPERTY MANAGEMENT */}
+                <section className="rounded-[28px] bg-white/60 backdrop-blur-3xl border border-white/80 shadow-[0_12px_50px_rgba(15,23,42,0.06)] overflow-hidden">
+
+                  <div className="p-5 sm:p-7 border-b border-slate-200/70">
+
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+
+                      <div>
+                        <h2 className="text-xl font-extrabold text-slate-900">
+                          Property Listings
+                        </h2>
+                        <p className="text-sm text-slate-500 mt-1">
+                          Manage, edit and organize your properties.
+                        </p>
+                      </div>
+
+                      <div className="relative w-full sm:max-w-xs">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                        <input
+                          type="search"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          placeholder="Search properties..."
+                          className={`${inputCls} pl-11`}
+                        />
+                      </div>
+
                     </div>
-                    <p className="text-xs text-slate-500 font-semibold">
-                      Total Properties
-                    </p>
-                    <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">
-                      {properties.length}
-                    </h3>
+
                   </div>
 
-                  <div className="rounded-[24px] bg-white/60 backdrop-blur-2xl border border-white/90 p-4 sm:p-5 shadow-lg shadow-slate-900/5">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4">
-                      <Home className="w-5 h-5" />
-                    </div>
-                    <p className="text-xs text-slate-500 font-semibold">
-                      For Sale
-                    </p>
-                    <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">
-                      {saleCount}
-                    </h3>
-                  </div>
+                  <div className="p-5 sm:p-7">
 
-                  <div className="rounded-[24px] bg-white/60 backdrop-blur-2xl border border-white/90 p-4 sm:p-5 shadow-lg shadow-slate-900/5">
-                    <div className="w-10 h-10 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center mb-4">
-                      <House className="w-5 h-5" />
-                    </div>
-                    <p className="text-xs text-slate-500 font-semibold">
-                      For Rent
-                    </p>
-                    <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">
-                      {rentCount}
-                    </h3>
-                  </div>
+                    {loading ? (
 
-                  <div className="rounded-[24px] bg-white/60 backdrop-blur-2xl border border-white/90 p-4 sm:p-5 shadow-lg shadow-slate-900/5">
-                    <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mb-4">
-                      <Star className="w-5 h-5" />
-                    </div>
-                    <p className="text-xs text-slate-500 font-semibold">
-              
+                      <div className="py-16 flex flex-col items-center">
+                        <div className="w-10 h-10 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin" />
+                        <p classN
