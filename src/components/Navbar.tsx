@@ -13,30 +13,120 @@ import {
 import { useAuth } from '@/context/AuthContext';
 
 function HomeScoutLogo() {
+  const letters = 'HomeScout'.split('');
+
+  const scatter = [
+    ['-35px', '-25px', '-35deg'],
+    ['-20px', '30px', '25deg'],
+    ['-10px', '-38px', '-20deg'],
+    ['25px', '28px', '30deg'],
+    ['38px', '-25px', '-35deg'],
+    ['-30px', '35px', '25deg'],
+    ['30px', '30px', '35deg'],
+    ['20px', '-35px', '-25deg'],
+    ['40px', '15px', '30deg'],
+  ];
+
   return (
-    <Link to="/" className="group flex items-center gap-3 shrink-0">
-      <div className="relative">
-        <div className="absolute inset-0 rounded-2xl bg-blue-500 blur-xl opacity-30 group-hover:opacity-60 transition-opacity" />
+    <>
+      <style>{`
+        @keyframes hs-letter-assemble {
+          0% {
+            opacity: 0;
+            transform:
+              translate3d(var(--scatter-x), var(--scatter-y), 0)
+              rotate(var(--scatter-rotate))
+              scale(.3);
+            filter: blur(8px);
+          }
 
-        <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500 via-blue-700 to-slate-950 flex items-center justify-center shadow-lg shadow-blue-900/30 group-hover:-translate-y-1 transition-transform duration-300">
-          <svg viewBox="0 0 48 48" fill="none" className="w-7 h-7">
-            <path d="M7 22L24 8L41 22" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M12 20V39H36V20" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M20 39V28H28V39" stroke="#93C5FD" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-            <circle cx="35" cy="12" r="4" fill="#60A5FA" />
-          </svg>
+          65% {
+            opacity: 1;
+            transform: translate3d(0, 0, 0) rotate(-4deg) scale(1.12);
+            filter: blur(0);
+          }
+
+          82% {
+            transform: translate3d(0, 0, 0) rotate(2deg) scale(.96);
+          }
+
+          100% {
+            opacity: 1;
+            transform: translate3d(0, 0, 0) rotate(0) scale(1);
+            filter: blur(0);
+          }
+        }
+
+        .hs-letter {
+          display: inline-block;
+          opacity: 0;
+          animation: hs-letter-assemble 1.15s cubic-bezier(.2,.8,.2,1) both;
+          animation-delay: calc(var(--letter-index) * 55ms);
+          transform-origin: center;
+          will-change: transform, opacity;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .hs-letter {
+            animation: none;
+            opacity: 1;
+            transform: none;
+          }
+        }
+      `}</style>
+
+      <Link
+        to="/"
+        className="group flex items-center gap-3 shrink-0"
+        aria-label="HomeScout home"
+      >
+        <div className="relative">
+          <div className="absolute inset-0 rounded-2xl bg-blue-500 blur-xl opacity-40 group-hover:opacity-70 transition-opacity" />
+
+          <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-400 via-blue-700 to-slate-950 flex items-center justify-center shadow-xl shadow-blue-900/40 group-hover:-translate-y-1 transition-transform duration-300">
+            <svg viewBox="0 0 48 48" fill="none" className="w-8 h-8">
+              <path d="M7 22L24 8L41 22" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M12 20V39H36V20" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M20 39V28H28V39" stroke="#93C5FD" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+              <circle cx="35" cy="12" r="4" fill="#60A5FA" />
+            </svg>
+          </div>
         </div>
-      </div>
 
-      <div className="flex flex-col">
-        <span className="text-xl font-extrabold tracking-tight text-slate-900 leading-none">
-          Home<span className="text-blue-600">Scout</span>
-        </span>
-        <span className="text-[9px] tracking-[0.25em] font-bold text-slate-400 uppercase mt-1">
-          Find Your Place
-        </span>
-      </div>
-    </Link>
+        <div className="flex flex-col">
+          <span
+            aria-label="HomeScout"
+            className="text-[25px] sm:text-[29px] font-black tracking-[-1.5px] leading-none text-slate-950 whitespace-nowrap"
+          >
+            {letters.map((letter, index) => {
+              const [x, y, rotate] = scatter[index];
+
+              return (
+                <span
+                  key={index}
+                  aria-hidden="true"
+                  className={`hs-letter ${
+                    index >= 4 ? 'text-blue-600' : ''
+                  }`}
+                  style={{
+                    '--letter-index': index,
+                    '--scatter-x': x,
+                    '--scatter-y': y,
+                    '--scatter-rotate': rotate,
+                  } as React.CSSProperties}
+                >
+                  {letter}
+                </span>
+              );
+            })}
+          </span>
+
+          <span className="text-[9px] sm:text-[10px] tracking-[0.3em] font-bold text-slate-400 uppercase mt-1">
+            Find Your Place
+          </span>
+        </div>
+      </Link>
+    </>
   );
 }
 
@@ -67,7 +157,6 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/50 bg-white/55 backdrop-blur-2xl backdrop-saturate-150 shadow-[0_8px_32px_rgba(15,23,42,0.06)]">
 
-      {/* Subtle glass reflection */}
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/50 via-white/10 to-transparent" />
 
       <nav className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -75,7 +164,6 @@ export default function Navbar() {
 
           <HomeScoutLogo />
 
-          {/* Desktop navigation */}
           <div className="hidden md:flex items-center gap-1 p-1.5 rounded-2xl bg-white/25 border border-white/40 shadow-inner shadow-white/40">
 
             <Link to="/listings?listingType=sale" className={navClass}>
@@ -100,7 +188,6 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Desktop account section */}
           <div className="hidden md:flex items-center gap-3">
 
             {session ? (
@@ -118,9 +205,7 @@ export default function Navbar() {
                     <p className="text-sm font-bold text-slate-800 truncate">
                       {profile?.full_name || 'My Account'}
                     </p>
-                    <p className="text-[11px] text-slate-400">
-                      Account
-                    </p>
+                    <p className="text-[11px] text-slate-400">Account</p>
                   </div>
 
                   <ChevronDown
@@ -199,7 +284,6 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile menu button */}
           <button
             className="md:hidden w-11 h-11 flex items-center justify-center rounded-2xl bg-white/55 border border-white/70 text-slate-800 backdrop-blur-xl shadow-sm hover:bg-white/80 transition-all"
             onClick={() => setMobileOpen(!mobileOpen)}
@@ -215,7 +299,6 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile glass navigation */}
       {mobileOpen && (
         <div className="md:hidden relative border-t border-white/50 bg-white/65 backdrop-blur-2xl shadow-[0_20px_40px_rgba(15,23,42,0.10)] animate-fade-in">
 
@@ -311,4 +394,4 @@ export default function Navbar() {
       )}
     </header>
   );
-                }
+  }
